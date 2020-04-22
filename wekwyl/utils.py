@@ -1,36 +1,71 @@
-from typing import List
-from typing import Optional
+import dataclasses
 
 import cv2
 import numpy as np
 from tqdm import tqdm
 
 
-def read_video(
-        path: str,
-        start_frame: Optional[int] = None,
-        end_frame: Optional[int] = None,
-) -> List[np.ndarray]:
-    frames = []
+@dataclasses.dataclass
+class Point:
+    x: float
+    y: float
+
+    def __add__(self, other):
+        return Point(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        return Point(self.x - other.x, self.y - other.y)
+
+    def __truediv__(self, number):
+        if isinstance(number, (int, float)):
+            return Point(self.x / number, self.y / number)
+        else:
+            raise TypeError
+
+    def __floordiv__(self, number):
+        if isinstance(number, (int, float)):
+            return Point(self.x // number, self.y // number)
+        else:
+            raise TypeError
+
+    def __mul__(self, number):
+        if isinstance(number, (int, float)):
+            return Point(self.x * number, self.y * number)
+        else:
+            raise TypeError
+
+    def __abs__(self):
+        return (self.x ** 2 + self.y ** 2) ** 0.5
+
+
+def read_video(path, size=None, tqdm=None):
+    assert size is None or len(size) == 2
+
     cap = cv2.VideoCapture(path)
 
-    num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    n, h, w = (
+        int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),
+        int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+        int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+    )
 
-    if not start_frame:
-        start_frame = 0
-    start_frame = min(max(0, start_frame), num_frames - 1)
+    size = size if size != (w, h) else None
+    shape = (n, size[1], size[0], 3) if size else (n, h, w, 3)
+    frames = np.zeros(shape, dtype=np.uint8)
 
-    if not end_frame:
-        end_frame = num_frames - 1
-    end_frame = min(max(0, end_frame), num_frames - 1)
+    frame_iterator = range(n)
+    if tqdm:
+        frame_iterator = tqdm(frame_iterator)
 
-    for index in tqdm(range(num_frames)):
+    for index in frame_iterator:
         ret, frame = cap.read()
         if not ret:
             break
-        if start_frame <= index <= end_frame:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frames.append(frame)
+
+        if size:
+            frame = cv2.resize(frame, size)
+
+        frames[index] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     cap.release()
     return frames

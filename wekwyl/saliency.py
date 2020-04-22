@@ -11,38 +11,7 @@ from PIL import ImageDraw
 import scipy as sp
 from tqdm import tqdm
 
-
-@dataclasses.dataclass
-class Point:
-    x: float
-    y: float
-        
-    def __add__(self, other):
-        return Point(self.x + other.x, self.y + other.y)
-
-    def __sub__(self, other):
-        return Point(self.x - other.x, self.y - other.y)
-    
-    def __truediv__(self, number):
-        if isinstance(number, (int, float)):
-            return Point(self.x / number, self.y / number)
-        else:
-            raise TypeError
-    
-    def __floordiv__(self, number):
-        if isinstance(number, (int, float)):
-            return Point(self.x // number, self.y // number)
-        else:
-            raise TypeError
-    
-    def __mul__(self, number):
-        if isinstance(number, (int, float)):
-            return Point(self.x * number, self.y * number)
-        else:
-            raise TypeError
-
-    def __abs__(self):
-        return (self.x ** 2 + self.y ** 2) ** 0.5
+from utils import Point
 
 
 def _update_fixations(df, fixations, fps):
