@@ -72,7 +72,7 @@ class SphericalNSS(nn.Module):
 
         batch_size = y_pred.shape[0]
 
-        num_fixations = th.Tensor(list(map(len, y_gt)), device=y_pred.device)
+        num_fixations = th.tensor(list(map(len, y_gt)), device=y_pred.device)
         num_fixations[num_fixations < eps] = eps
 
         fixation_map = th.zeros_like(y_pred)
