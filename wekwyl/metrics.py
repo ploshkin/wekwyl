@@ -14,7 +14,7 @@ class SphericalMSE(nn.Module):
         self.weight = nn.Parameter(weight.reshape((1, 1, h, 1)), requires_grad=False)
 
     def forward(self, y_pred, y_true):
-        return th.sum((y_pred - y_true) ** 2 * self.weight) / y_pred.numel()
+        return th.mean((y_pred - y_true) ** 2 * self.weight)
 
 
 class SphericalCC(nn.Module):
@@ -30,7 +30,7 @@ class SphericalCC(nn.Module):
         y = y_true
         vx = (x - th.mean(x, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))) * self.weight
         vy = (y - th.mean(y, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))) * self.weight
-        return (
+        return th.mean(
             th.sum(vx * vy, dim=[1, 2, 3])
             / (
                 th.sqrt(th.sum(vx ** 2, dim=[1, 2, 3]))
@@ -44,7 +44,10 @@ class SphericalNSS(nn.Module):
     def __init__(self, h, w):
         super(SphericalNSS, self).__init__()
         self.h, self.w = h, w
-        self.kernels = self._compute_kernels(h)
+        kernels = self._compute_kernels(h)
+        self.kernels = [
+            nn.Parameter(kernel, requires_grad=False) for kernel in kernels
+        ]
 
     def _compute_kernels(self, h):
         thetas = np.linspace(0.5, h - 0.5, num=h) * math.pi / h
@@ -99,4 +102,5 @@ class SphericalNSS(nn.Module):
                     else:
                         fixation_map[index, 0, y, left: right] = kernel
 
-        return th.sum(y_pred * fixation_map, dim=[1, 2, 3]) / num_fixations
+        fixation_map = fixation_map.to(y_pred.device)
+        return th.mean(th.sum(y_pred * fixation_map, dim=[1, 2, 3]) / num_fixations)
