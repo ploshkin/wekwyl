@@ -1,7 +1,5 @@
 from collections import defaultdict
-import dataclasses
 import os
-from typing import List
 
 import cv2
 import numpy as np
@@ -41,19 +39,17 @@ def get_fixations(file_paths, fps):
     return fixations
 
 
-def _normalize(arr: np.ndarray) -> np.ndarray:
+def _normalize(arr) -> np.ndarray:
     return (arr - arr.min()) / arr.max()
 
 
-def get_equatorial_center_prior(
-        w: int, h: int, sigma: float = 1.0
-) -> np.ndarray:
+def get_equatorial_center_prior(w, h, sigma=1.0):
     bell = np.exp(-((np.arange(h) - h / 2) / sigma) ** 2)
     cp = np.repeat(bell[..., np.newaxis], w, axis=1)
     return _normalize(cp)
 
 
-def make_saliency_map(image: np.ndarray, points: List[Point]) -> np.ndarray:
+def make_saliency_map(image, points):
     h, w = image.shape[:2]
 
     fixation_map = np.zeros((h, w))
@@ -67,18 +63,16 @@ def make_saliency_map(image: np.ndarray, points: List[Point]) -> np.ndarray:
     return _normalize(saliency_map)
 
 
-def make_heatmap(image: np.ndarray, saliency_map: np.ndarray) -> np.ndarray:
+def make_heatmap(image, saliency_map):
     inverted = 1 - saliency_map
     discrete = np.rint(inverted * 255).astype(np.uint8)
     rgb = np.repeat(discrete[..., np.newaxis], 3, axis=2)
-
     heatmap = cv2.applyColorMap(rgb, cv2.COLORMAP_JET)
     return cv2.addWeighted(image, 0.5, heatmap, 0.5, 0)
 
 
-def draw_fixations(image: np.ndarray, points: List[Point]) -> Image.Image:
+def draw_fixations(image, points):
     h, w = image.shape[:2]
-
     img = Image.fromarray(image)
     draw = ImageDraw.Draw(img)
     r = round(w * 0.007)
@@ -91,9 +85,7 @@ def draw_fixations(image: np.ndarray, points: List[Point]) -> Image.Image:
     return img
 
 
-def make_vizualization(
-        image: np.ndarray, points: List[Point], kind: str = 'heatmap',
-) -> Image.Image:
+def make_vizualization(image, points, kind='heatmap'):
     if kind == 'points':
         img = draw_fixations(image, points)
 
