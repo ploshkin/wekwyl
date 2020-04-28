@@ -88,6 +88,8 @@ class CylindircUnetNN(nn.Module):
     def to(self, *args, **kwargs):
         self = super().to(*args, **kwargs)
         self.model = self.model.to(*args, **kwargs)
+        for module in self.model.modules():
+            module = module.to(*args, **kwargs)
         return self
 
 
@@ -192,4 +194,6 @@ class UnetNNSkipConnectionBlock(nn.Module):
     def to(self, *args, **kwargs):
         self = super().to(*args, **kwargs)
         self.model = self.model.to(*args, **kwargs)
+        for module in self.model.modules():
+            module = module.to(*args, **kwargs)
         return self
