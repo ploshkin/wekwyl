@@ -85,6 +85,11 @@ class CylindircUnetNN(nn.Module):
         """Standard forward"""
         return self.model(x)
 
+    def to(self, *args, **kwargs):
+        self = super().to(*args, **kwargs)
+        self.model = self.model.to(*args, **kwargs)
+        return self
+
 
 class UnetNNSkipConnectionBlock(nn.Module):
     """Defines the Unet submodule with skip connection.
@@ -183,3 +188,8 @@ class UnetNNSkipConnectionBlock(nn.Module):
             return self.model(x)
         else:   # Add skip connection.
             return th.cat([x, self.model(x)], dim=1)
+
+    def to(self, *args, **kwargs):
+        self = super().to(*args, **kwargs)
+        self.model = self.model.to(*args, **kwargs)
+        return self
