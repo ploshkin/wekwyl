@@ -11,8 +11,6 @@ class Config(NamedTuple):
     frames_folder: str
     maps_folder: str
     fixations_filename: str
-    ckpt_dir: str
-    best_model_dir: str
     height: int = 160
     width: int = 320
     nss_weight: float = -0.2

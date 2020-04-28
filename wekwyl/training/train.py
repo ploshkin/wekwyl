@@ -99,7 +99,7 @@ def add_handlers(
     trainer, validator, train_loader, validation_loader, model, optimizer, config,
 ):
     training_saver = ModelCheckpoint(
-        dirname=config.ckpt_dir,
+        dirname=os.path.join(config.experiment_name, 'checkpoint'),
         filename_prefix='ckpt',
         n_saved=5,
         require_empty=False,
@@ -154,7 +154,7 @@ def add_handlers(
     )
 
     trainer.add_event_handler(
-        Events.COMPLETED,
+        Events.EPOCH_COMPLETED(every=config.vld_every_epoch),
         handlers.copy_dir,
         src=config.experiment_name,
         dst=os.path.join(config.experiments_dir, config.experiment_name),
@@ -214,7 +214,7 @@ def add_handlers(
     validator.add_event_handler(Events.COMPLETED, handler)
 
     best_model_saver = ModelCheckpoint(
-        dirname=config.best_model_dir,  
+        dirname=os.path.join(config.experiment_name, 'best_models'),  
         filename_prefix='best',
         score_name='nss',  
         score_function=get_nss,
