@@ -63,7 +63,14 @@ def read_video(path, size=None, tqdm=None):
             break
 
         if size:
-            frame = cv2.resize(frame, size)
+            if size[0] > w or size[1] > h:
+                interpolation = cv2.INTER_LANCZOS4
+            else:
+                interpolation = cv2.INTER_AREA
+
+            frame = cv2.resize(
+                frame, size, interpolation=interpolation,
+            )
 
         frames[index] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
