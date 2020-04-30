@@ -315,6 +315,7 @@ def make_dataloader(config, videos, transform, shuffle):
         config.maps_folder,
         config.fixations_filename,
         transform,
+        config.frac,
     )
     return data.DataLoader(
         dataset,
@@ -327,6 +328,11 @@ def make_dataloader(config, videos, transform, shuffle):
 
 
 def run_train(config):
+    if config.random_seed:
+        print(f'Set random state: {config.random_seed}')
+        np.random.seed(config.random_seed)
+        th.manual_seed(config.random_seed)
+
     use_cuda = config.use_cuda and th.cuda.is_available()
     device = th.device('cuda' if use_cuda else 'cpu')
     print(f'Detected device: {device.type}')

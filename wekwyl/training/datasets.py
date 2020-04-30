@@ -40,6 +40,7 @@ class SaliencyDataset(data.dataset.Dataset):
             maps_folder,
             fixations_filename,
             transform=None,
+            frac=None,
     ):
         super(SaliencyDataset, self).__init__()
         self.videos = videos
@@ -48,21 +49,32 @@ class SaliencyDataset(data.dataset.Dataset):
         self.maps_dir = os.path.join(dataset_dir, maps_folder)
         self.fixations_file = os.path.join(dataset_dir, fixations_filename)
         self.transform = transform
+        self.frac = frac if frac else 1.0
 
-        self.frames = {
-            video: _list_files(os.path.join(self.frames_dir, video))
-            for video in videos
-        }
-        self.maps = {
-            video: _list_files(os.path.join(self.maps_dir, video))
-            for video in videos
-        }
+        assert 0 <= self.frac <= 1
+
         with open(self.fixations_file) as ifile:
             fixations = json.load(ifile)
-            self.fixations = {
-                video: np.array(fixations[video])
-                for video in self.videos
-            }
+
+        self.frames = {}
+        self.maps = {}
+        self.fixations = {}
+
+        for video in videos:
+            frames = _list_files(os.path.join(self.frames_dir, video))
+            maps = _list_files(os.path.join(self.maps_dir, video))
+            fixs = fixations[video]
+
+            assert len(frames) <= len(maps), f'Video: "{video}"'
+            assert len(frames) <= len(fixs), f'Video: "{video}"'
+
+            num_frames = len(frames)
+            frac_frames = np.ceil(self.frac * num_frames).astype(np.int32)
+            indices = sorted(np.random.choice(num_frames, frac_frames, replace=False))
+
+            self.frames[video] = [frames[i] for i in indices]
+            self.maps[video] = [maps[i] for i in indices]
+            self.fixations[video] = [fixs[i] for i in indices]
 
         self.cumulative_length = np.cumsum(list(map(len, self.frames.values())))
         

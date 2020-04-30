@@ -1,4 +1,5 @@
 from typing import List
+from typing import Optional
 from typing import NamedTuple
 
 
@@ -35,3 +36,5 @@ class Config(NamedTuple):
     num_downsamples: int = 5
     num_filters: int = 64
     use_dropout: bool = False
+    frac: float = 1.0
+    random_seed: Optional[int] = None
