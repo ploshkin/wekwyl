@@ -6,8 +6,8 @@ from torch import nn
 
 
 def _normalize_batch(x, eps=1e-5):
-    mean = x.mean(dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
-    std = x.std(dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
+    mean = th.mean(x, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
+    std = th.std(x, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
     std[std < eps] = eps
     return (x - mean) / std
 
@@ -34,7 +34,7 @@ class SphericalCC(nn.Module):
         self.weight = nn.Parameter(weight.reshape((1, 1, h, 1)), requires_grad=False)
 
     def _center(self, x):
-        mean = x.mean(dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
+        mean = th.mean(x, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
         return x - mean
 
     def _std(self, x):
