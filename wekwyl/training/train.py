@@ -204,7 +204,7 @@ def add_handlers(
     )
 
     def get_nss(engine):
-        return engine.state.mean_losses['NSS'].item()
+        return engine.state.mean_losses['NSS']
 
     handler = EarlyStopping(
         patience=10,
