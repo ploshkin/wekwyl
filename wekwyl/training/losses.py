@@ -6,10 +6,11 @@ from torch import nn
 
 
 def _normalize_batch(x, eps=1e-5):
-    mean = th.mean(x, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
-    std = th.std(x, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
-    std[std < eps] = eps
-    return (x - mean) / std
+    mean = x.mean(dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
+    std = x.std(dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
+    res = th.zeros_like(std)
+    res[std < eps] = eps
+    return (x - mean) / (std + res)
 
 
 class SphericalMSE(nn.Module):
@@ -34,15 +35,16 @@ class SphericalCC(nn.Module):
         self.weight = nn.Parameter(weight.reshape((1, 1, h, 1)), requires_grad=False)
 
     def _center(self, x):
-        mean = th.mean(x, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
+        mean = x.mean(dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
         return x - mean
 
     def _std(self, x):
-        std = th.sqrt(th.sum(x ** 2, dim=[1, 2, 3]))
-        std[std < self.eps] = self.eps
-        return std
+        sx = th.sqrt(th.sum(x ** 2, dim=[1, 2, 3]))
+        res = th.zeros_like(sx)
+        res[sx < self.eps] = self.eps
+        return sx + res
 
-    def forward(self, y_pred, y_true, eps=1e-5):
+    def forward(self, y_pred, y_true):
         vy_pred = self._center(y_pred) * self.weight
         vy_true = self._center(y_true) * self.weight
 
@@ -50,7 +52,8 @@ class SphericalCC(nn.Module):
         sy_true = self._std(vy_true)
 
         return th.mean(
-            th.sum(vy_pred * vy_true, dim=[1, 2, 3]) / (sy_pred * sy_true)
+            th.sum(vy_pred * vy_true, dim=[1, 2, 3])
+            / (sy_pred * sy_true)
         )
 
 
