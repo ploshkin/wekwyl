@@ -25,17 +25,17 @@ class SphericalCC(nn.Module):
         weight = th.sin(th.linspace(0.5, h - 0.5, steps=h) * math.pi / h)
         self.weight = nn.Parameter(weight.reshape((1, 1, h, 1)), requires_grad=False)
 
-    def forward(self, y_pred, y_true):
+    def forward(self, y_pred, y_true, eps=1e-5):
         x = y_pred
         y = y_true
         vx = (x - th.mean(x, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))) * self.weight
         vy = (y - th.mean(y, dim=[1, 2, 3]).reshape((-1, 1, 1, 1))) * self.weight
+        sx = th.sqrt(th.sum(vx ** 2, dim=[1, 2, 3]))
+        sx[sx < eps] = eps
+        sy = th.sqrt(th.sum(vy ** 2, dim=[1, 2, 3]))
+        sy[sy < eps] = eps
         return th.mean(
-            th.sum(vx * vy, dim=[1, 2, 3])
-            / (
-                th.sqrt(th.sum(vx ** 2, dim=[1, 2, 3]))
-                * th.sqrt(th.sum(vy ** 2, dim=[1, 2, 3]))
-            )
+            th.sum(vx * vy, dim=[1, 2, 3]) / (sx * sy)
         )
 
 
