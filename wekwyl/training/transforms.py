@@ -2,13 +2,13 @@ import numpy as np
 import torch as th
 
 
-def _safe_normalize(image):
-    diff = image.max() - image.min()
+def _scale_values(x):
+    diff = x.max() - x.min()
     if np.isclose(diff, 0):
-        normalized = image.copy()
+        scaled = x.copy()
     else:
-        normalized = (image - image.min()) / diff
-    return normalized
+        scaled = (x - x.min()) / diff
+    return scaled
 
 
 class ToChannelsFirst:
@@ -38,7 +38,7 @@ class NormalizeImages:
     def __call__(self, sample):
         return {
             'frame': sample['frame'] / 255,
-            'saliency': _safe_normalize(sample['saliency']),
+            'saliency': _scale_values(sample['saliency']),
             'fixations': sample['fixations'],
         }
 
