@@ -286,7 +286,6 @@ def make_loop_step_function(model, criterions, weights, lr_scheduler, device):
             key: criterion(maps_pred, maps, fixations)
             for key, criterion in criterions.items()
         }
-        engine.state.batch_losses = losses
 
         loss = sum(w * losses[key] for key, w in weights.items())
         if train:

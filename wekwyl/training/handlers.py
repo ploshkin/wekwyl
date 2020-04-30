@@ -61,10 +61,10 @@ def update_accumulators(engine):
     engine.state.total_items += engine.state.batch_size
     proportion = engine.state.batch_size / engine.state.total_items
 
-    for key in engine.state.batch_losses.keys():
+    for key in engine.state.output.keys():
         engine.state.mean_losses[key] += (
             proportion *
-            (engine.state.batch_losses[key] - engine.state.mean_losses[key])
+            (engine.state.output[key] - engine.state.mean_losses[key])
         )
 
 
