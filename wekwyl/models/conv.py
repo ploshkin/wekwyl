@@ -1,10 +1,9 @@
 import torch as th
 import torch.nn as nn
+import torch.nn.functional as F
 
-from .pad import pad_cylindric_2d
 
-
-def slice_channels(num_channels, num_pieces):
+def _slice_channels(num_channels, num_pieces):
     assert num_channels >= num_pieces
     residual = num_channels % num_pieces
     piece_size = num_channels // num_pieces
@@ -13,6 +12,22 @@ def slice_channels(num_channels, num_pieces):
             yield piece_size + 1
         else:
             yield piece_size
+
+
+def _pad_cylindric(input, pad):
+    l, r, u, d = pad
+    w = input.shape[3]
+
+    up = input[:, :, 1: u + 1]
+    up = th.roll(up, shifts=w // 2, dims=[3])
+    up = th.flip(up, dims=[2])
+
+    down = input[:, :, -(d + 1): -1]
+    down = th.roll(down, shifts=w // 2, dims=[3])
+    down = th.flip(down, dims=[2])
+
+    padded = th.cat([up, input, down], dim=2)
+    return F.pad(padded, [l, r, 0, 0], mode='circular')
 
 
 class CylindricConv2d(nn.Module):
@@ -36,8 +51,8 @@ class CylindricConv2d(nn.Module):
         ]
     
         num_groups = len(kernel_sizes)
-        self.in_groups = list(slice_channels(in_channels, num_groups))
-        self.out_groups = list(slice_channels(out_channels, num_groups))
+        self.in_groups = list(_slice_channels(in_channels, num_groups))
+        self.out_groups = list(_slice_channels(out_channels, num_groups))
     
         self.convolutions = [
             nn.Conv2d(
@@ -58,7 +73,7 @@ class CylindricConv2d(nn.Module):
     def forward(self, x):
         groups = th.split(x, self.in_groups, dim=1)
         convolved = [
-            conv(pad_cylindric_2d(group, pad))
+            conv(_pad_cylindric(group, pad))
             for conv, group, pad in zip(
                 self.convolutions, groups, self.paddings,
             )
