@@ -16,18 +16,20 @@ def _slice_channels(num_channels, num_pieces):
 
 def _pad_cylindric(input, pad):
     l, r, u, d = pad
-    w = input.shape[3]
+#     w = input.shape[3]
 
-    up = input[:, :, 1: u + 1]
-    up = th.roll(up, shifts=w // 2, dims=[3])
-    up = th.flip(up, dims=[2])
+#     up = input[:, :, 1: u + 1]
+#     up = th.roll(up, shifts=w // 2, dims=[3])
+#     up = th.flip(up, dims=[2])
 
-    down = input[:, :, -(d + 1): -1]
-    down = th.roll(down, shifts=w // 2, dims=[3])
-    down = th.flip(down, dims=[2])
+#     down = input[:, :, -(d + 1): -1]
+#     down = th.roll(down, shifts=w // 2, dims=[3])
+#     down = th.flip(down, dims=[2])
 
-    padded = th.cat([up, input, down], dim=2)
-    return F.pad(padded, [l, r, 0, 0], mode='circular')
+#     padded = th.cat([up, input, down], dim=2)
+#     return = F.pad(padded, [l, r, 0, 0], mode='circular')
+    padded = F.pad(input, [l, r, 0, 0], mode='circular')
+    return F.pad(padded, [0, 0, u, d], mode='constant')
 
 
 class CylindricConv2d(nn.Module):
