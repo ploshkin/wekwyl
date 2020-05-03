@@ -359,13 +359,12 @@ def run_train(config):
 
     print('Creating model...')
     norm_layer = utils.get_norm_layer(config.norm_type)
-    model = unet.CylindircUnetNN(
-        input_nc=3,
-        output_nc=1,
-        num_downs=config.num_downsamples,
+    model = unet.CylindricUnet(
+        n_in=3,
+        n_out=1,
+        n_downs=config.num_downsamples,
         ngf=config.num_filters,
         norm_layer=norm_layer,
-        use_dropout=config.use_dropout,
     )
     model = model.to(device)
 

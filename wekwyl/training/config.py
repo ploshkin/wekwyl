@@ -35,6 +35,5 @@ class Config(NamedTuple):
     norm_type: str = 'batch'
     num_downsamples: int = 5
     num_filters: int = 64
-    use_dropout: bool = False
     frac: float = 1.0
     random_seed: Optional[int] = None

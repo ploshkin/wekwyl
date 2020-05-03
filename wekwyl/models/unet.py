@@ -19,10 +19,10 @@ class _UnetBlock(nn.Module):
             n_flt,
             n_in=None,
             subnet=None,
+            downsample=False,
             outer=False,
             inner=False,
             norm_layer=nn.BatchNorm2d,
-            use_dropout=False,
             kernel_sizes=[(3, 3),]
     ):
         """Construct a Unet submodule with skip connections.
@@ -31,13 +31,13 @@ class _UnetBlock(nn.Module):
             n_flt (int) -- the number of filters in the inner conv layer
             n_in (int) -- the number of channels in input images/features
             subnet (_UnetBlock) -- previously defined submodules
+            downsample (bool) -- if downsample
             outer (bool) -- if this module is the outermost module
             inner (bool) -- if this module is the innermost module
             norm_layer -- normalization layer
-            use_dropout (bool) -- if use dropout layers
             kernel_sizes (list) -- list of kernel sizes inside CylindricConv2d
         """
-        super(UnetBlock, self).__init__()
+        super(_UnetBlock, self).__init__()
         self.outer = outer
 
         if type(norm_layer) == functools.partial:
@@ -86,9 +86,6 @@ class _UnetBlock(nn.Module):
                 norm_layer(n_out),
             ]
 
-            if use_dropout:
-                layers.append(nn.Dropout(0.5))
-
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -114,9 +111,8 @@ class CylindricUnet(nn.Module):
             n_in,
             n_out,
             n_downs,
-            ngf=64,
+            ngf,
             norm_layer=nn.BatchNorm2d,
-            use_dropout=False,
     ):
         """Construct a Unet generator
         Parameters:
@@ -131,30 +127,29 @@ class CylindricUnet(nn.Module):
         """
         super(CylindricUnet, self).__init__()
         # Add the innermost layer.
-        subnet = UnetBlock(
+        subnet = _UnetBlock(
             ngf * 8, ngf * 8, norm_layer=norm_layer, inner=True,
         )
         # Add intermediate layers with ngf * 8 filters.
         for i in range(n_downs - 5):
-            subnet = UnetBlock(
+            subnet = _UnetBlock(
                 ngf * 8,
                 ngf * 8,
                 subnet=subnet,
                 norm_layer=norm_layer,
-                use_dropout=use_dropout,
             )
         # Gradually reduce the number of filters from ngf * 8 to ngf.
-        subnet = UnetBlock(
+        subnet = _UnetBlock(
             ngf * 4, ngf * 8, subnet=subnet, norm_layer=norm_layer,
         )
-        subnet = UnetBlock(
+        subnet = _UnetBlock(
             ngf * 2, ngf * 4, subnet=subnet, norm_layer=norm_layer,
         )
-        subnet = UnetBlock(
+        subnet = _UnetBlock(
             ngf, ngf * 2, subnet=subnet, norm_layer=norm_layer,
         )
         # Add the outermost layer.
-        self.model = UnetBlock(
+        self.model = _UnetBlock(
             n_out,
             ngf,
             n_in=n_in,
