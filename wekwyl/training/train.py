@@ -123,7 +123,7 @@ def add_handlers(
     train_images_dir = os.path.join(
         config.experiment_name, 'images', 'train',
     )
-    os.makedirs(train_images_dir)
+    os.makedirs(train_images_dir, exist_ok=True)
 
     def get_frame(engine):
         return Image.fromarray(
@@ -231,7 +231,7 @@ def add_handlers(
     validation_images_dir = os.path.join(
         config.experiment_name, 'images', 'validation',
     )
-    os.makedirs(validation_images_dir)
+    os.makedirs(validation_images_dir, exist_ok=True)
 
     validator.add_event_handler(
         Events.ITERATION_COMPLETED(every=config.dump_interval),
