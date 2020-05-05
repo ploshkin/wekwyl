@@ -13,6 +13,8 @@ def log_iteration(engine):
 
 
 def copy_dir(engine, src, dst):
+    if os.path.exists(dst):
+        sh.rmtree(dst)
     sh.copytree(src, dst)
 
 

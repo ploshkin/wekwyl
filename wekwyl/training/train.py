@@ -24,7 +24,6 @@ from ignite.engine import Engine
 from ignite.engine import Events
 from ignite.handlers import EarlyStopping
 from ignite.handlers import ModelCheckpoint
-from ignite.handlers import Timer
 
 
 def add_tensorboard_handler(trainer, validator, model, optimizer, log_dir):
@@ -51,7 +50,7 @@ def add_tensorboard_handler(trainer, validator, model, optimizer, log_dir):
         log_handler=OutputHandler(
             tag='validation',
             output_transform=lambda loss: loss,
-            global_step_transform=global_step_from_engine(trainer)
+            global_step_transform=global_step_from_engine(trainer),
         ),
         event_name=Events.EPOCH_COMPLETED,
     )
@@ -109,15 +108,6 @@ def add_handlers(
         Events.ITERATION_COMPLETED(every=config.ckpt_interval),
         training_saver,
         {'model': model, 'optimizer': optimizer},
-    )
-
-    timer = Timer(average=True)
-    timer.attach(
-        trainer,
-        start=Events.EPOCH_STARTED,
-        resume=Events.ITERATION_STARTED,
-        pause=Events.ITERATION_COMPLETED,
-        step=Events.ITERATION_COMPLETED,
     )
 
     train_images_dir = os.path.join(
@@ -336,6 +326,9 @@ def run_train(config):
     device = th.device('cuda' if use_cuda else 'cpu')
     print(f'Detected device: {device.type}')
 
+    print(f'Create experiment dir: "{os.path.abspath(config.experiment_name)}"')
+    os.makedirs(config.experiment_name)
+
     transform = torchvision.transforms.Compose(
         [
             transforms.ToChannelsFirst(),
@@ -346,7 +339,6 @@ def run_train(config):
     )
 
     print('Creating dataloaders...')
-
     trn_loader = make_dataloader(
         config, config.trn_videos, transform, shuffle=True,
     )
