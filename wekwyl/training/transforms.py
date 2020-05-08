@@ -11,7 +11,7 @@ def _scale_values(x):
     return scaled
 
 
-class NotEmpty:
+class NoneIfEmpty:
 
     def __call__(self, sample):
         if (

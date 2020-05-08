@@ -331,11 +331,11 @@ def run_train(config):
 
     transform = torchvision.transforms.Compose(
         [
-            transforms.NotEmpty(),
             transforms.ToChannelsFirst(),
             transforms.CastImages('float32'),
             transforms.NormalizeImages(),
             transforms.ToTensor(device),
+            transforms.NoneIfEmpty(),
         ]
     )
 
