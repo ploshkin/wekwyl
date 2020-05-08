@@ -27,9 +27,10 @@ class SphericalMSE(nn.Module):
 
 class SphericalCC(nn.Module):
 
-    def __init__(self, h, w, eps=1e-5):
+    def __init__(self, h, w, use_weight=True, eps=1e-5):
         super(SphericalCC, self).__init__()
         self.h, self.w = h, w
+        self.use_weight = use_weight
         self.eps = eps
         weight = th.sin(th.linspace(0.5, h - 0.5, steps=h) * math.pi / h)
         self.weight = nn.Parameter(weight.reshape((1, 1, h, 1)), requires_grad=False)
@@ -45,8 +46,12 @@ class SphericalCC(nn.Module):
         return sx + res
 
     def forward(self, y_pred, y_true):
-        vy_pred = self._center(y_pred) * self.weight
-        vy_true = self._center(y_true) * self.weight
+        vy_pred = self._center(y_pred)
+        vy_true = self._center(y_true)
+
+        if self.use_weight:
+            vy_pred *= self.weight
+            vy_true *= self.weight
 
         sy_pred = self._std(vy_pred)
         sy_true = self._std(vy_true)

@@ -377,7 +377,9 @@ def run_train(config):
     print('LR Scheduler: {}'.format(lr_scheduler.state_dict()))
 
     nss = losses.SphericalNSS(config.height, config.width).to(device)
-    cc = losses.SphericalCC(config.height, config.width).to(device)
+    cc = losses.SphericalCC(
+        config.height, config.width, config.cc_is_spherical,
+    ).to(device)
     mse = losses.SphericalMSE(config.height, config.width).to(device)
 
     criterions = {

@@ -17,6 +17,7 @@ class Config(NamedTuple):
     nss_weight: float = -0.2
     cc_weight: float = -0.3
     mse_weight: float = 0.5
+    cc_is_spherical: bool = True
     weight_decay: float = 1e-5
     use_cuda: bool = True
     num_workers: int = 1
