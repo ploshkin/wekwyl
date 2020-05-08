@@ -17,6 +17,7 @@ def _list_files(folder):
 
 
 def collate(batch):
+    batch = list(filter(lambda x: x is not None, batch))
     return {
         'frame': th.cat(
             [item['frame'].unsqueeze(dim=0) for item in batch],
