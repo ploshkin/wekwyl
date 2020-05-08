@@ -335,7 +335,6 @@ def run_train(config):
             transforms.CastImages('float32'),
             transforms.NormalizeImages(),
             transforms.ToTensor(device),
-            transforms.NoneIfEmpty(),
         ]
     )
 

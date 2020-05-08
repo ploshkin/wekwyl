@@ -16,8 +16,18 @@ def _list_files(folder):
     return list(sorted(files))
 
 
+def _is_valid(item):
+    d_frame = item['frame'].max() - item['frame'].min()
+    d_saliency = item['saliency'].max() - item['saliency'].min()
+    return bool(
+        not th.isclose(d_frame, th.zeros_like(d_frame))
+        and not th.isclose(d_saliency, th.zeros_like(d_saliency))
+        and len(item['fixations']) > 0
+    )
+
+
 def collate(batch):
-    batch = list(filter(lambda x: x is not None, batch))
+    batch = list(filter(_is_valid, batch))
     return {
         'frame': th.cat(
             [item['frame'].unsqueeze(dim=0) for item in batch],

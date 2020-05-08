@@ -11,19 +11,6 @@ def _scale_values(x):
     return scaled
 
 
-class NoneIfEmpty:
-
-    def __call__(self, sample):
-        if (
-            np.isclose(sample['frame'].max() - sample['frame'].min(), 0)
-            or np.isclose(sample['saliency'].max() - sample['saliency'].min(), 0)
-            or len(sample['fixations']) == 0
-        ):
-            return None
-
-        return sample
-
-
 class ToChannelsFirst:
 
     def __call__(self, sample):
