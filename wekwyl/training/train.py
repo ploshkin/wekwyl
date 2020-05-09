@@ -357,6 +357,7 @@ def run_train(config):
         n_downs=config.num_downsamples,
         ngf=config.num_filters,
         norm_layer=norm_layer,
+        kernel_sizes=config.kernel_sizes,
     )
     model = model.to(device)
 

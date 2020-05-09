@@ -1,6 +1,7 @@
 from typing import List
 from typing import Optional
 from typing import NamedTuple
+from typing import Tuple
 
 
 class Config(NamedTuple):
@@ -18,6 +19,7 @@ class Config(NamedTuple):
     cc_weight: float = -0.3
     mse_weight: float = 0.5
     cc_is_spherical: bool = True
+    kernel_sizes: List[Tuple[int, int]] = [(3, 3)]
     weight_decay: float = 1e-5
     use_cuda: bool = True
     num_workers: int = 1

@@ -23,7 +23,7 @@ class _UnetBlock(nn.Module):
             outer=False,
             inner=False,
             norm_layer=nn.BatchNorm2d,
-            kernel_sizes=[(3, 3),]
+            kernel_sizes=[(3, 3)],
     ):
         """Construct a Unet submodule with skip connections.
         Parameters:
@@ -113,6 +113,7 @@ class CylindricUnet(nn.Module):
             n_downs,
             ngf,
             norm_layer=nn.BatchNorm2d,
+            kernel_sizes=[(3, 3)],
     ):
         """Construct a Unet generator
         Parameters:
@@ -122,13 +123,18 @@ class CylindricUnet(nn.Module):
                              image of size 128x128 will become of size 1x1 at the bottleneck
             ngf (int) -- the number of filters in the last conv layer
             norm_layer -- normalization layer
+            kernel_sizes -- list of kernel sizes used in CylindricConv2d
         We construct the U-Net from the innermost layer to the outermost layer.
         It is a recursive process.
         """
         super(CylindricUnet, self).__init__()
         # Add the innermost layer.
         subnet = _UnetBlock(
-            ngf * 8, ngf * 8, norm_layer=norm_layer, inner=True,
+            ngf * 8,
+            ngf * 8,
+            norm_layer=norm_layer,
+            inner=True,
+            kernel_sizes=kernel_sizes,
         )
         # Add intermediate layers with ngf * 8 filters.
         for i in range(n_downs - 5):
@@ -137,16 +143,30 @@ class CylindricUnet(nn.Module):
                 ngf * 8,
                 subnet=subnet,
                 norm_layer=norm_layer,
+                kernel_sizes=kernel_sizes,
             )
+
         # Gradually reduce the number of filters from ngf * 8 to ngf.
         subnet = _UnetBlock(
-            ngf * 4, ngf * 8, subnet=subnet, norm_layer=norm_layer,
+            ngf * 4,
+            ngf * 8,
+            subnet=subnet,
+            norm_layer=norm_layer,
+            kernel_sizes=kernel_sizes,
         )
         subnet = _UnetBlock(
-            ngf * 2, ngf * 4, subnet=subnet, norm_layer=norm_layer,
+            ngf * 2,
+            ngf * 4,
+            subnet=subnet,
+            norm_layer=norm_layer,
+            kernel_sizes=kernel_sizes,
         )
         subnet = _UnetBlock(
-            ngf, ngf * 2, subnet=subnet, norm_layer=norm_layer,
+            ngf,
+            ngf * 2,
+            subnet=subnet,
+            norm_layer=norm_layer,
+            kernel_sizes=kernel_sizes,
         )
         # Add the outermost layer.
         self.model = _UnetBlock(
@@ -156,6 +176,7 @@ class CylindricUnet(nn.Module):
             subnet=subnet,
             outer=True,
             norm_layer=norm_layer,
+            kernel_sizes=kernel_sizes,
         )
 
     def forward(self, x):
