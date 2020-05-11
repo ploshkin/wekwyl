@@ -180,8 +180,12 @@ class CylindricUnet(nn.Module):
         )
 
     def forward(self, x):
-        """Standard forward"""
-        return self.model(x)
+        x = self.model(x)
+        prob = x / x.sum(dim=[1, 2, 3]).reshape((-1, 1, 1, 1))
+        return {
+            'prob': prob,
+            'logit': th.log(prob),
+        }
 
     def to(self, *args, **kwargs):
         self = super().to(*args, **kwargs)

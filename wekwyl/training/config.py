@@ -15,10 +15,11 @@ class Config(NamedTuple):
     fixations_filename: str
     height: int = 160
     width: int = 320
-    nss_weight: float = -0.2
-    cc_weight: float = -0.3
-    mse_weight: float = 0.5
-    cc_is_spherical: bool = True
+    nss_weight: float = -0.1
+    cc_weight: float = -0.1
+    mse_weight: float = 0.0
+    kl_weight: float = 1.0
+    cc_is_spherical: bool = False
     kernel_sizes: List[Tuple[int, int]] = [(3, 3)]
     weight_decay: float = 1e-5
     use_cuda: bool = True

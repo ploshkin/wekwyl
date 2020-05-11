@@ -131,8 +131,10 @@ def add_handlers(
     )
 
     def get_saliency(engine):
+        salmap = engine.state.saliency[0]
+        salmap = transforms._scale_values(salmap)
         return Image.fromarray(
-            np.rint(engine.state.saliency[0] * 255).astype(np.uint8)
+            np.rint(salmap * 255).astype(np.uint8)
         )
 
     trainer.add_event_handler(
@@ -270,21 +272,21 @@ def make_loop_step_function(model, criterions, weights, lr_scheduler, device):
         maps = batch['saliency'].to(device)
         fixations = batch['fixations']
 
-        maps_pred = model(frames)
+        output = model(frames)
 
         losses = {
-            key: criterion(maps_pred, maps, fixations)
+            key: criterion(output, maps, fixations)
             for key, criterion in criterions.items()
         }
-
         loss = sum(w * losses[key] for key, w in weights.items())
+
         if train:
             loss.backward()
             lr_scheduler.optimizer.step()
             lr_scheduler.step()
 
         engine.state.frame = frames[0].detach().cpu().numpy()
-        engine.state.saliency = maps_pred[0].detach().cpu().numpy()
+        engine.state.saliency = output['prob'][0].detach().cpu().numpy()
 
         output_losses = {
             key: value.item()
@@ -382,16 +384,19 @@ def run_train(config):
         config.height, config.width, config.cc_is_spherical,
     ).to(device)
     mse = losses.SphericalMSE(config.height, config.width).to(device)
+    kl = nn.KLDivLoss(reduction='batchmean')
 
     criterions = {
-        'NSS': lambda maps_pred, maps, fixations: nss(maps_pred, fixations),
-        'CC': lambda maps_pred, maps, fixations: cc(maps_pred, maps),
-        'MSE': lambda maps_pred, maps, fixations: mse(maps_pred, maps),
+        'NSS': lambda out, maps, fixs: nss(out['prob'], fixs),
+        'CC': lambda out, maps, fixs: cc(out['prob'], maps),
+        'MSE': lambda out, maps, fixs: mse(out['prob'], maps),
+        'KL': lambda out, maps, fixs: kl(out['logit'], maps),
     }
     weights = {
         'NSS': config.nss_weight,
         'CC': config.cc_weight,
         'MSE': config.mse_weight,
+        'KL': config.kl_weight,
     }
 
     run_on_batch = make_loop_step_function(model, criterions, weights, lr_scheduler, device)

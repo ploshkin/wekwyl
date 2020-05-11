@@ -3,12 +3,21 @@ import torch as th
 
 
 def _scale_values(x):
-    diff = x.max() - x.min()
-    if np.isclose(diff, 0):
-        scaled = x.copy()
+    x_min = x.min()
+    d = x.max() - x_min
+    if np.isclose(d, 0):
+        return x - x_min
     else:
-        scaled = (x - x.min()) / diff
-    return scaled
+        return (x - x_min) / d
+
+
+def _to_pdf(x):
+    x = x - x.min()
+    s = x.sum()
+    if np.isclose(s, 0):
+        return th.full(x.shape, 1 / x.numel())
+    else:
+        return x / s
 
 
 class ToChannelsFirst:
@@ -38,7 +47,7 @@ class NormalizeImages:
     def __call__(self, sample):
         return {
             'frame': sample['frame'] / 255.,
-            'saliency': _scale_values(sample['saliency']),
+            'saliency': _to_pdf(sample['saliency']),
             'fixations': sample['fixations'],
         }
 
