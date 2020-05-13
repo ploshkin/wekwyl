@@ -50,39 +50,62 @@ class _UnetBlock(nn.Module):
 
         if outer:
             layers = [
-                CylindricConv2d(n_in, n_flt, kernel_sizes, stride=2, bias=use_bias),
+                nn.Conv2d(n_in, n_flt, 3, padding=1, bias=use_bias, padding_mode='circular'),
+                # CylindricConv2d(n_in, n_flt, kernel_sizes, bias=use_bias),
+                norm_layer(n_flt),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv2d(n_flt, n_flt, 3, padding=1, bias=use_bias, padding_mode='circular'),
+                # CylindricConv2d(n_flt, n_flt, kernel_sizes, bias=use_bias),
+                nn.MaxPool2d(2, 2),
                 norm_layer(n_flt),
                 subnet,
                 nn.LeakyReLU(0.2, inplace=True),
                 nn.UpsamplingNearest2d(scale_factor=2),
-                CylindricConv2d(n_flt * 2, n_flt, kernel_sizes, bias=use_bias),
+                nn.Conv2d(n_flt * 2, n_flt, 3, padding=1, bias=use_bias, padding_mode='circular'),
+                # CylindricConv2d(n_flt * 2, n_flt, kernel_sizes, bias=use_bias),
+                norm_layer(n_flt),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(n_flt, n_flt, 3, padding=1, bias=use_bias, padding_mode='circular'),
+                # CylindricConv2d(n_flt, n_flt, kernel_sizes, bias=use_bias),
                 norm_layer(n_flt),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(n_flt, n_out, (1, 1), bias=use_bias),
-                norm_layer(n_out),
                 nn.Sigmoid(),
             ]
 
         elif inner:
             layers = [
                 nn.LeakyReLU(0.2, inplace=True),
-                CylindricConv2d(n_in, n_flt, kernel_sizes, stride=2, bias=use_bias),
+                nn.Conv2d(n_in, n_flt, 3, padding=1, stride=2, bias=use_bias, padding_mode='circular'),
+                # CylindricConv2d(n_in, n_flt, kernel_sizes, stride=2, bias=use_bias),
                 norm_layer(n_flt),
                 nn.ReLU(inplace=True),
                 nn.UpsamplingNearest2d(scale_factor=2),
-                CylindricConv2d(n_flt, n_out, kernel_sizes, bias=use_bias),
+                nn.Conv2d(n_flt, n_out, 3, padding=1, bias=use_bias, padding_mode='circular'),
+                # CylindricConv2d(n_flt, n_out, kernel_sizes, bias=use_bias),
                 norm_layer(n_out),
             ]
 
         else:
             layers = [
                 nn.LeakyReLU(0.2, inplace=True),
-                CylindricConv2d(n_in, n_flt, kernel_sizes, stride=2, bias=use_bias),
+                nn.Conv2d(n_in, n_flt, 3, padding=1, bias=use_bias, padding_mode='circular'),
+                # CylindricConv2d(n_in, n_flt, kernel_sizes, bias=use_bias),
+                norm_layer(n_flt),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv2d(n_flt, n_flt, 3, bias=use_bias, padding=1, padding_mode='circular'),
+                # CylindricConv2d(n_flt, n_flt, kernel_sizes, bias=use_bias),
+                nn.MaxPool2d(2, 2),
                 norm_layer(n_flt),
                 subnet,
                 nn.ReLU(inplace=True),
                 nn.UpsamplingNearest2d(scale_factor=2),
-                CylindricConv2d(n_flt * 2, n_out, kernel_sizes, bias=use_bias),
+                nn.Conv2d(n_flt * 2, n_flt, 3, bias=use_bias, padding=1, padding_mode='circular'),
+                # CylindricConv2d(n_flt * 2, n_flt, kernel_sizes, bias=use_bias),
+                norm_layer(n_flt),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(n_flt, n_out, 3, bias=use_bias, padding=1, padding_mode='circular'),
+                # CylindricConv2d(n_flt, n_out, kernel_sizes, bias=use_bias),
                 norm_layer(n_out),
             ]
 
